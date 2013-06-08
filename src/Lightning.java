@@ -9,7 +9,7 @@ import java.util.Random;
 
 public class Lightning {
 
-    private static final float FADE_FACTOR = 0.95f;
+    private static final float FADE_FACTOR = 0.90f;
 
     private static final float FADE_MIN_VALUE = 0.1f;
 
@@ -37,6 +37,9 @@ public class Lightning {
         if (flash.size() > 0 && fadeFactor < FADE_MIN_VALUE) {
             dead = true;
         }
+        if (branches.fadeFactor < 0.1f && flash.size() == 0) {
+            dead = true;
+        }
 
         branches.update();
 
@@ -50,13 +53,17 @@ public class Lightning {
     }
 
     public void draw(Graphics2D g2d) {
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
         branches.draw(g2d);
 
         g2d.setColor(Color.WHITE);
         g2d.setStroke(new BasicStroke(10));
+        for (LightningSegment segment : flash) {
+            g2d.drawLine(segment.x, segment.y, segment.x2, segment.y2);
+        }
 
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+        g2d.setStroke(new BasicStroke(fadeFactor + 10));
         float alpha = fadeFactor;
         if (alpha > 1) alpha = 1f;
         if (alpha > 0) {
@@ -71,7 +78,7 @@ public class Lightning {
     }
 
     public void addFlash(Node node) {
-        if (node.parent != null) {
+        if (node != null) {
             flash.add(new LightningSegment(node.destX, node.destY, node.originX, node.originY));
             touchDownSegment = node.parent;
         }
@@ -79,11 +86,11 @@ public class Lightning {
 }
 
 class Node {
-    private static final int PROGRESS_Y_FACTOR = 150;
-    private static final int PROGRESS_Y_MIN = -50;
+    private static final int PROGRESS_Y_FACTOR = 350;
+    private static final int PROGRESS_Y_MIN = 50;
     private static final int PROGRESS_X_FACTOR = 200;
     private static final int PROGRESS_X_MIN = 100;
-    private static final int START_X_FACTOR = 400;
+    private static final int START_X_FACTOR = 800;
     private static final int START_X_MIN = 200;
     private static final int INITIAL_STRENGTH = 10;
     private static final int MAX_CHILDREN = 2;
@@ -106,16 +113,14 @@ class Node {
         if (parent == null) {
             originY = 0;
             originX = START_X_MIN + random.nextInt(START_X_FACTOR);
-            destX = originX = 200 + random.nextInt(850);
-            destY = originY = 0;
             originalStrength = strength = INITIAL_STRENGTH;
         } else {
             originX = parent.destX;
             originY = parent.destY;
-            destX = originX - PROGRESS_X_MIN + random.nextInt(PROGRESS_X_FACTOR);
-            destY = originY - PROGRESS_Y_MIN + random.nextInt(PROGRESS_Y_FACTOR);
             originalStrength = strength = parent.strength;
         }
+        destX = originX - PROGRESS_X_MIN + random.nextInt(PROGRESS_X_FACTOR);
+        destY = originY - PROGRESS_Y_MIN + random.nextInt(PROGRESS_Y_FACTOR);
         fadeFactor = strength;
     }
 
@@ -124,7 +129,7 @@ class Node {
 
         // g2d.setStroke(new BasicStroke(originalStrength));
         int width = 1;
-        if (parent != null && parent.parent == null) {
+        if (parent == null) {
             width = 10;
         }
         g2d.setStroke(new BasicStroke(width));
@@ -134,7 +139,7 @@ class Node {
         float alpha = fadeFactor / 10;
         if (alpha > 0.5) alpha = 0.5f;
         if (alpha > 0) {
-            int type = AlphaComposite.SRC_OVER;
+            int type = AlphaComposite.SRC_IN;
             AlphaComposite composite = AlphaComposite.getInstance(type, alpha);
             g2d.setComposite(composite);
 

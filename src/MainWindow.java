@@ -18,6 +18,7 @@ import javax.swing.Timer;
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame {
 
+    private static final int TIMER_FPS = 1000 / 60;
     private static final int WINDOW_HEIGHT = 1000;
     private static final int WINDOW_WIDTH = 1500;
 
@@ -32,7 +33,7 @@ public class MainWindow extends JFrame {
         setLocation(screenSize.width / 2 - WINDOW_WIDTH / 2, screenSize.height / 2 - WINDOW_HEIGHT / 2);
         setVisible(true);
 
-        final Timer timer = new Timer(1000 / 60, new ActionListener() {
+        final Timer timer = new Timer(TIMER_FPS, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 List<Lightning> deadLightnings = new ArrayList<Lightning>();
@@ -44,6 +45,7 @@ public class MainWindow extends JFrame {
                 }
                 lightnings.removeAll(deadLightnings);
                 repaint();
+                System.out.println("Lightnings: " + lightnings.size());
             }
         });
         timer.start();
@@ -84,7 +86,7 @@ public class MainWindow extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2d = (Graphics2D) g;
             g2d.setBackground(Color.BLACK);
-            g2d.clearRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+            g2d.clearRect(0, 0, 2000, 1500);
             for (Lightning l : lightnings) {
                 l.draw(g2d);
             }
