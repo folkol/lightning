@@ -7,18 +7,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
 
+@SuppressWarnings("serial")
 public class MainWindow extends JFrame {
 
     private static final int WINDOW_HEIGHT = 1000;
     private static final int WINDOW_WIDTH = 1500;
 
-    Lightning lightning = new Lightning();
+    List<Lightning> lightnings = new ArrayList<Lightning>();
 
     public MainWindow() {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -32,7 +35,14 @@ public class MainWindow extends JFrame {
         final Timer timer = new Timer(1000 / 60, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                lightning.update();
+                List<Lightning> deadLightnings = new ArrayList<Lightning>();
+                for (Lightning l : lightnings) {
+                    l.update();
+                    if(l.dead) {
+                        deadLightnings.add(l);
+                    }
+                }
+                lightnings.removeAll(deadLightnings);
                 repaint();
             }
         });
@@ -56,7 +66,9 @@ public class MainWindow extends JFrame {
                     timer.stop();
                 }
                 if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    lightning = new Lightning();
+                    if (lightnings.size() < 10) {
+                        lightnings.add(new Lightning());
+                    }
                 }
             }
         });
@@ -66,13 +78,16 @@ public class MainWindow extends JFrame {
         new MainWindow();
     }
 
+    @SuppressWarnings("serial")
     class GameField extends JPanel {
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2d = (Graphics2D) g;
             g2d.setBackground(Color.BLACK);
             g2d.clearRect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-            lightning.draw(g2d);
+            for (Lightning l : lightnings) {
+                l.draw(g2d);
+            }
         }
     }
 
